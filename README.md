@@ -1,124 +1,147 @@
-# SPN Cipher - Secret Agent Chatbox
+#  SPN Cipher - Secret Agent Chatbox
 
-A dark themed Python encryption app that uses a custom **SPN Cipher (Shift-Permutation-Noise)** algorithm. The project includes both a Tkinter GUI and a simple command-line mode.
+A modern **Python encryption tool** with a dark-themed **chat-style GUI**, powered by a custom **SPN (Shift–Permutation–Noise) Cipher**.
+Supports both **GUI (Tkinter)** and **CLI (Terminal)** modes for flexible usage.
 
-## Features
 
-- Custom SPN encryption algorithm
-- Encrypt and decrypt messages
-- Dark secret-agent chatbox GUI
-- Key-based encryption
-- Multiple encryption rounds
-- Base64 output always enabled for easy copying
-- Wrong key detection with `Key not match.`
-- CLI mode for terminal users
-- Beginner-friendly code structure
+##  Features
 
-## How The Algorithm Works
+*  Custom SPN encryption algorithm
+*  Encrypt and decrypt messages
+*  Stylish **Secret-Agent Chatbox UI**
+*  Key-based encryption system
+*  Multiple encryption rounds
+*  Base64 encoding for safe output
+*  Wrong key detection (`Key not match`)
+*  CLI mode support
+*  Beginner-friendly and well-structured code
 
-The SPN Cipher has three main stages:
 
-1. **Dynamic Key-Based Shift**
-   - Converts each key character into a numeric shift using ASCII value mod 26.
-   - Shifts lowercase letters inside `a-z`.
-   - Shifts uppercase letters inside `A-Z`.
-   - Shifts digits inside `0-9`.
-   - Keeps special characters unchanged.
+##  How the Algorithm Works
 
-2. **Block Permutation**
-   - Splits the text into blocks based on the key length.
-   - Reverses each block.
+The **SPN Cipher** follows 3 main stages:
 
-3. **Noise Injection**
-   - Adds a random lowercase character after every 3 characters.
-   - Uses Python's built-in `random` module.
+### 1.  Dynamic Key-Based Shift
 
-During decryption, the app reverses these steps:
+* Each key character → numeric shift using ASCII % 26
+* Applies shifting on:
 
-- Removes noise
-- Reverses block permutation
-- Reverses key-based shifting
-- Checks whether the key matched
+  * `a-z` (lowercase letters)
+  * `A-Z` (uppercase letters)
+  * `0-9` (digits)
+* Special characters remain unchanged
 
-## Project Files
 
-```text
-ENCRYPTIPON TOOL.py   # Main GUI and CLI program
-cipher.py             # SPN Cipher encryption/decryption logic
-.vscode/settings.json # VS Code Python runner settings
-README.md             # Project documentation
+### 2. Block Permutation
+
+* Splits message into blocks (based on key length)
+* Reverses each block
+
+
+### 3. Noise Injection
+
+* Adds a random lowercase character after every 3 characters
+* Uses Python’s built-in `random` module
+
+
+###  Decryption Process
+
+Reverse of encryption:
+
+1. Remove noise
+2. Reverse block permutation
+3. Reverse key-based shift
+4. Validate key
+
+
+## Project Structure
+
+```
+ENCRYPTIPON TOOL/
+│
+├── ENCRYPTIPON TOOL.py   # GUI + CLI main application
+├── cipher.py             # SPN encryption/decryption logic
+├── README.md             # Project documentation
 ```
 
-## Requirements
 
-- Python 3
-- Tkinter
+##  Requirements
 
-Tkinter usually comes pre-installed with Python on macOS and many other systems.
+* Python 3.x
+* Tkinter (usually pre-installed)
 
-## Run The GUI
 
-Open the project folder in VS Code, then run:
+##  Run the Application
+
+###  GUI Mode
 
 ```bash
-python3 "ENCRYPTIPON TOOL.py"
+python "ENCRYPTIPON TOOL.py"
 ```
 
-Or press the VS Code run button if your Python interpreter is configured.
 
-## Run In CLI Mode
+### CLI Mode
 
 ```bash
-python3 "ENCRYPTIPON TOOL.py" --cli
+python "ENCRYPTIPON TOOL.py" --cli
 ```
 
-Then follow the prompts:
+Then follow prompts:
 
-```text
+```
 Choose Encrypt or Decrypt (e/d):
 Enter message:
 Enter key:
 Rounds (default 1):
 ```
 
-## Example
 
-Input:
+##  Example
 
-```text
+**Input:**
+
+```
 Message: Hello123
 Key: mysecret
 Rounds: 2
 ```
 
-Output:
+**Output:**
 
-```text
+```
 Encrypted transmission:
-<Base64 encrypted text>
+<Base64 encoded encrypted text>
 ```
 
-To decrypt, paste the encrypted output, use the same key, and select the same number of rounds.
 
-## Wrong Key Behavior
+##  Wrong Key Behavior
 
-If the wrong key is used during decryption, the app displays:
+If incorrect key is used during decryption:
 
-```text
+```
 Key not match.
 ```
 
-## GitHub Upload Note
 
-Do not upload generated or system files such as:
+##  Future Improvements
 
-```text
-__pycache__/
-.DS_Store
-```
+* Add multiple cipher options (Caesar, AES, etc.)
+* Copy-to-clipboard feature
+* Light/Dark theme toggle
+* Export chat history
+* Brute-force decryption mode
 
-Only upload the source files and documentation.
 
-## Important Note
+##  Notes
 
-This project is made for learning and demonstration. It is a custom educational cipher, not a replacement for professional cryptography libraries used in real security systems.
+* This project is built for **learning and demonstration purposes**
+* Not intended for real-world secure communication
+
+
+##  Author
+
+**Satish**
+Student | Python Developer | Encryption Enthusiast
+
+
+
