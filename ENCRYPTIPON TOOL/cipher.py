@@ -1,11 +1,16 @@
-"""SPN Cipher (Shift-Permutation-Noise).
+"""Cipher helpers for the Secret Agent Chatbox project.
 
-This module contains the full encryption and decryption logic for the project.
-The algorithm is educational, custom, and reversible when the same key and
-round count are used.
+The module exposes two cipher families:
+
+- SPN Cipher (Shift-Permutation-Noise), the custom educational cipher.
+- Caesar Cipher, a classic shift cipher with brute-force support.
+
+The functions raise ValueError for invalid input so both the GUI and CLI can
+show friendly error messages instead of crashing.
 """
 
 import base64
+import binascii
 import random
 import string
 
@@ -13,42 +18,64 @@ import string
 NOISE_INTERVAL = 3
 MESSAGE_MARKER = "SPN_OK::"
 KEY_MISMATCH_ERROR = "Key not match."
+MIN_ROUNDS = 1
+MAX_ROUNDS = 5
+ALPHABET_SIZE = 26
+DIGIT_SIZE = 10
 
 
-def _validate_inputs(message, key, rounds):
-    """Check common input rules before encrypting or decrypting."""
+def validate_rounds(rounds):
+    """Return a valid round count between 1 and 5."""
+    try:
+        round_count = int(rounds)
+    except (TypeError, ValueError) as error:
+        raise ValueError("Rounds must be a number from 1 to 5.") from error
+
+    if not MIN_ROUNDS <= round_count <= MAX_ROUNDS:
+        raise ValueError("Rounds must be between 1 and 5.")
+
+    return round_count
+
+
+def validate_message_and_key(message, key, rounds):
+    """Validate shared SPN inputs."""
     if message == "":
         raise ValueError("Message cannot be empty.")
     if key == "":
         raise ValueError("Key cannot be empty.")
-    if rounds < 1:
-        raise ValueError("Rounds must be at least 1.")
+
+    return validate_rounds(rounds)
+
+
+def normalize_shift(value):
+    """Return a Caesar shift value in the range 0-25."""
+    try:
+        return int(value) % ALPHABET_SIZE
+    except (TypeError, ValueError) as error:
+        raise ValueError("Shift must be a number from 0 to 25.") from error
 
 
 def _key_shifts(key):
     """Convert each key character into a numeric shift using ASCII mod 26."""
-    return [ord(character) % 26 for character in key]
+    return [ord(character) % ALPHABET_SIZE for character in key]
 
 
 def _shift_letter(character, shift):
     """Shift uppercase and lowercase letters inside their own alphabets."""
-    if character.islower():
-        base = ord("a")
-    else:
-        base = ord("A")
-
-    return chr(base + ((ord(character) - base + shift) % 26))
+    base = ord("a") if character.islower() else ord("A")
+    offset = (ord(character) - base + shift) % ALPHABET_SIZE
+    return chr(base + offset)
 
 
 def _shift_digit(character, shift):
     """Shift digits inside 0-9."""
-    return str((int(character) + shift) % 10)
+    return str((int(character) + shift) % DIGIT_SIZE)
 
 
 def _dynamic_shift(text, key, decrypt=False):
     """Stage 1: apply or reverse cyclic key-based shifting."""
-    shifts = _key_shifts(key)
     shifted_text = []
+    shifts = _key_shifts(key)
 
     for index, character in enumerate(text):
         shift = shifts[index % len(shifts)]
@@ -101,7 +128,7 @@ def _remove_noise(text):
 
 
 def _encode_base64(text):
-    """Encode final encrypted text so it is easy to copy and paste."""
+    """Encode encrypted text so it is easy to copy and paste."""
     raw_bytes = text.encode("utf-8")
     return base64.urlsafe_b64encode(raw_bytes).decode("ascii")
 
@@ -111,16 +138,16 @@ def _decode_base64(text):
     try:
         raw_bytes = base64.urlsafe_b64decode(text.encode("ascii"))
         return raw_bytes.decode("utf-8")
-    except Exception as error:
+    except (binascii.Error, UnicodeDecodeError, UnicodeEncodeError) as error:
         raise ValueError("Encrypted message is not valid Base64.") from error
 
 
 def encrypt(message, key, rounds=1, use_base64=True):
     """Encrypt a message with the SPN Cipher."""
-    _validate_inputs(message, key, rounds)
+    round_count = validate_message_and_key(message, key, rounds)
     encrypted_text = MESSAGE_MARKER + message
 
-    for _round in range(rounds):
+    for _ in range(round_count):
         encrypted_text = _dynamic_shift(encrypted_text, key)
         encrypted_text = _permute_blocks(encrypted_text, key)
         encrypted_text = _inject_noise(encrypted_text)
@@ -133,10 +160,10 @@ def encrypt(message, key, rounds=1, use_base64=True):
 
 def decrypt(message, key, rounds=1, use_base64=True):
     """Decrypt a message created by encrypt()."""
-    _validate_inputs(message, key, rounds)
+    round_count = validate_message_and_key(message, key, rounds)
     decrypted_text = _decode_base64(message) if use_base64 else message
 
-    for _round in range(rounds):
+    for _ in range(round_count):
         decrypted_text = _remove_noise(decrypted_text)
         decrypted_text = _permute_blocks(decrypted_text, key)
         decrypted_text = _dynamic_shift(decrypted_text, key, decrypt=True)
@@ -145,3 +172,41 @@ def decrypt(message, key, rounds=1, use_base64=True):
         raise ValueError(KEY_MISMATCH_ERROR)
 
     return decrypted_text[len(MESSAGE_MARKER) :]
+
+
+def caesar_cipher(message, shift, mode="encrypt"):
+    """Encrypt or decrypt a message with a Caesar shift."""
+    if message == "":
+        raise ValueError("Message cannot be empty.")
+
+    normalized_shift = normalize_shift(shift)
+    if mode == "decrypt":
+        normalized_shift = -normalized_shift
+
+    transformed_text = []
+    for character in message:
+        if character.isalpha():
+            transformed_text.append(_shift_letter(character, normalized_shift))
+        elif character.isdigit():
+            transformed_text.append(_shift_digit(character, normalized_shift))
+        else:
+            transformed_text.append(character)
+
+    return "".join(transformed_text)
+
+
+def brute_force_caesar(message):
+    """Return all possible Caesar decryptions for shifts 0-25."""
+    if message == "":
+        raise ValueError("Message cannot be empty.")
+
+    results = []
+    for shift in range(ALPHABET_SIZE):
+        results.append(
+            {
+                "shift": shift,
+                "text": caesar_cipher(message, shift, mode="decrypt"),
+            }
+        )
+
+    return results
